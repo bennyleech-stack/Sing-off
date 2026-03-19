@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>SING OFF</title>
+<link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Black+Han+Sans&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --neon-green: #39ff14;
+    --neon-pink: #ff2d78;
+    --neon-yellow: #ffe600;
+    --neon-cyan: #00f5ff;
+    --neon-orange: #ff6a00;
+    --neon-purple: #c800ff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--black);
+    font-family: 'Fredoka One', cursive;
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* ===== SETUP SCREEN ===== */
+  #setup-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    width: 100%;
+    height: 100%;
+    padding: 40px 24px;
+  }
+
+  .game-title {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(48px, 14vw, 96px);
+    color: var(--black);
+    -webkit-text-stroke: 3px var(--neon-yellow);
+    text-shadow: 0 0 30px var(--neon-yellow), 0 0 60px var(--neon-orange);
+    letter-spacing: 8px;
+    animation: titlePulse 2s ease-in-out infinite;
+  }
+
+  @keyframes titlePulse {
+    0%, 100% { text-shadow: 0 0 30px var(--neon-yellow), 0 0 60px var(--neon-orange); }
+    50% { text-shadow: 0 0 50px var(--neon-yellow), 0 0 100px var(--neon-orange), 0 0 150px var(--neon-pink); }
+  }
+
+  .mic-emoji {
+    font-size: 48px;
+    animation: bounce 1s ease-in-out infinite alternate;
+    display: inline-block;
+  }
+  @keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-10px); }
+  }
+
+  .setup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    max-width: 340px;
+  }
+
+  .name-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .name-label {
+    color: var(--neon-cyan);
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px var(--neon-cyan);
+  }
+
+  .name-input {
+    background: transparent;
+    border: 2px solid;
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 22px;
+    color: #fff;
+    outline: none;
+    width: 100%;
+    text-align: center;
+    letter-spacing: 2px;
+  }
+
+  .name-input:nth-of-type(1) { border-color: var(--neon-pink); box-shadow: 0 0 12px var(--neon-pink); }
+  .name-input:focus { background: rgba(255,255,255,0.05); }
+
+  #input-p1 { border-color: var(--neon-pink); box-shadow: 0 0 12px var(--neon-pink); }
+  #input-p1:focus { box-shadow: 0 0 24px var(--neon-pink); }
+  #input-p2 { border-color: var(--neon-cyan); box-shadow: 0 0 12px var(--neon-cyan); }
+  #input-p2:focus { box-shadow: 0 0 24px var(--neon-cyan); }
+
+  .start-btn {
+    background: linear-gradient(135deg, var(--neon-green), #00cc00);
+    color: var(--black);
+    border: none;
+    border-radius: 20px;
+    padding: 18px 40px;
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 28px;
+    letter-spacing: 4px;
+    cursor: pointer;
+    box-shadow: 0 0 30px var(--neon-green), 0 0 60px rgba(57,255,20,0.3);
+    transition: all 0.15s;
+    margin-top: 8px;
+    width: 100%;
+  }
+  .start-btn:active { transform: scale(0.96); box-shadow: 0 0 15px var(--neon-green); }
+
+  /* ===== GAME SCREEN ===== */
+  #game-screen {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    height: 100dvh;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Player halves */
+  .player-zone {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px;
+    position: relative;
+    transition: background 0.3s;
+  }
+
+  #zone-p2 { transform: rotate(180deg); border-bottom: 1px solid #222; }
+  #zone-p1 { border-top: 1px solid #222; }
+
+  .player-score {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(28px, 8vw, 52px);
+    color: #fff;
+    letter-spacing: 2px;
+    text-shadow: 0 0 20px currentColor;
+    line-height: 1;
+  }
+
+  .player-name-display {
+    font-size: clamp(16px, 4.5vw, 26px);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+
+  .challenge-badge {
+    font-size: clamp(11px, 3vw, 16px);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 16px;
+    border-radius: 20px;
+    font-family: 'Black Han Sans', sans-serif;
+    animation: badgePulse 1s ease-in-out infinite;
+    display: none;
+  }
+
+  @keyframes badgePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.04); }
+  }
+
+  .buzz-btn {
+    width: clamp(100px, 35vw, 160px);
+    height: clamp(100px, 35vw, 160px);
+    border-radius: 50%;
+    border: 4px solid rgba(255,255,255,0.2);
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(13px, 3.5vw, 20px);
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.12s;
+    text-align: center;
+    line-height: 1.2;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .buzz-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+  .buzz-btn:active::after { opacity: 1; }
+  .buzz-btn:active { transform: scale(0.94); }
+
+  .buzz-btn.locked {
+    opacity: 0.3;
+    filter: grayscale(0.8);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .buzz-btn.active-turn {
+    animation: activePulse 0.8s ease-in-out infinite;
+  }
+
+  @keyframes activePulse {
+    0%, 100% { box-shadow: 0 0 20px currentColor, 0 0 40px currentColor; }
+    50% { box-shadow: 0 0 40px currentColor, 0 0 80px currentColor; }
+  }
+
+  #btn-p1 { background: radial-gradient(circle at 40% 40%, var(--neon-pink), #990046); color: #fff; box-shadow: 0 0 25px var(--neon-pink); }
+  #btn-p2 { background: radial-gradient(circle at 40% 40%, var(--neon-cyan), #006680); color: #fff; box-shadow: 0 0 25px var(--neon-cyan); }
+
+  .btn-icon { font-size: clamp(22px, 6vw, 36px); }
+
+  /* Middle section */
+  #middle-zone {
+    height: auto;
+    padding: 6px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    z-index: 10;
+  }
+
+  #word-display {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .word-text {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(28px, 9vw, 60px);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 20px var(--neon-yellow), 0 0 50px var(--neon-orange);
+    line-height: 1;
+  }
+
+  .word-divider {
+    width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--neon-yellow), transparent);
+    margin: 4px 0;
+  }
+
+  .middle-btns {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .action-btn {
+    border: none;
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(14px, 3.5vw, 18px);
+    cursor: pointer;
+    transition: all 0.12s;
+    letter-spacing: 1px;
+  }
+  .action-btn:active { transform: scale(0.95); }
+
+  #btn-start-round {
+    background: linear-gradient(135deg, var(--neon-green), #00bb00);
+    color: var(--black);
+    font-size: clamp(16px, 4vw, 22px);
+    padding: 12px 30px;
+    box-shadow: 0 0 20px var(--neon-green);
+    display: none;
+  }
+
+  #btn-give-up {
+    background: rgba(255,255,255,0.08);
+    color: #aaa;
+    border: 1px solid #333;
+    display: none;
+  }
+  #btn-give-up:active { background: rgba(255,255,255,0.15); }
+
+  /* Confirm win buttons (inside player zones) */
+  .confirm-win-btn {
+    background: linear-gradient(135deg, var(--neon-green), #00aa00);
+    color: var(--black);
+    border: none;
+    border-radius: 14px;
+    padding: 10px 22px;
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(14px, 3.5vw, 19px);
+    letter-spacing: 2px;
+    cursor: pointer;
+    display: none;
+    box-shadow: 0 0 15px var(--neon-green);
+    transition: all 0.12s;
+  }
+  .confirm-win-btn:active { transform: scale(0.95); }
+
+  /* Countdown overlay */
+  #countdown-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  #countdown-number {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(100px, 30vw, 200px);
+    color: var(--neon-yellow);
+    text-shadow: 0 0 40px var(--neon-yellow), 0 0 100px var(--neon-orange);
+    animation: countPop 0.4s ease-out;
+    line-height: 1;
+  }
+
+  @keyframes countPop {
+    from { transform: scale(1.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .countdown-label {
+    color: var(--neon-cyan);
+    font-size: clamp(18px, 5vw, 30px);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px var(--neon-cyan);
+  }
+
+  /* Timer bar */
+  #timer-bar-container {
+    width: 80%;
+    max-width: 300px;
+    height: 8px;
+    background: #222;
+    border-radius: 4px;
+    overflow: hidden;
+    display: none;
+  }
+
+  #timer-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.1s linear;
+    background: var(--neon-green);
+  }
+
+  #timer-text {
+    color: #fff;
+    font-size: 16px;
+    letter-spacing: 2px;
+    display: none;
+    text-align: center;
+  }
+
+  /* Feedback flash */
+  #feedback-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    pointer-events: none;
+  }
+
+  .feedback-msg {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(40px, 14vw, 100px);
+    letter-spacing: 6px;
+    animation: feedbackAnim 0.7s ease-out forwards;
+  }
+
+  @keyframes feedbackAnim {
+    0% { transform: scale(0.5); opacity: 0; }
+    30% { transform: scale(1.2); opacity: 1; }
+    70% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0.8); opacity: 0; }
+  }
+
+  /* Win screen */
+  #win-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--black);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    z-index: 500;
+    padding: 40px;
+  }
+
+  .win-title {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(50px, 14vw, 100px);
+    letter-spacing: 6px;
+    text-align: center;
+    animation: winGlow 1.5s ease-in-out infinite;
+    line-height: 1;
+  }
+
+  @keyframes winGlow {
+    0%, 100% { text-shadow: 0 0 30px var(--neon-yellow), 0 0 60px var(--neon-orange); color: var(--neon-yellow); }
+    33% { text-shadow: 0 0 30px var(--neon-pink), 0 0 60px var(--neon-purple); color: var(--neon-pink); }
+    66% { text-shadow: 0 0 30px var(--neon-cyan), 0 0 60px var(--neon-green); color: var(--neon-cyan); }
+  }
+
+  .win-name {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(36px, 10vw, 72px);
+    color: var(--neon-green);
+    text-shadow: 0 0 20px var(--neon-green), 0 0 50px var(--neon-green);
+    letter-spacing: 4px;
+    text-align: center;
+  }
+
+  .win-subtitle {
+    color: #aaa;
+    font-size: clamp(16px, 4vw, 24px);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .play-again-btn {
+    background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 16px 48px;
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 26px;
+    letter-spacing: 4px;
+    cursor: pointer;
+    box-shadow: 0 0 30px var(--neon-pink);
+    margin-top: 16px;
+    transition: all 0.12s;
+  }
+  .play-again-btn:active { transform: scale(0.96); }
+
+  /* Confetti */
+  .confetti-piece {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    animation: confettiFall linear forwards;
+    pointer-events: none;
+    z-index: 501;
+  }
+  @keyframes confettiFall {
+    from { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* Active singer highlight */
+  .player-zone.singing {
+    background: rgba(57,255,20,0.04);
+  }
+
+  .player-zone.locked-out {
+    background: rgba(255,45,120,0.04);
+  }
+
+  /* Status text */
+  .status-label {
+    font-size: clamp(12px, 3vw, 16px);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #555;
+    text-align: center;
+    min-height: 20px;
+  }
+
+  /* Separator line in middle */
+  .separator {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #333, transparent);
+    margin: 0;
+  }
+
+  #fail-flash {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,0,0,0.15);
+    display: none;
+    z-index: 90;
+    pointer-events: none;
+    animation: failFlash 0.5s ease-out;
+  }
+  @keyframes failFlash {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* Lockout countdown display */
+  .lockout-timer {
+    font-size: clamp(12px, 3vw, 16px);
+    letter-spacing: 1px;
+    display: none;
+    color: var(--neon-orange);
+    text-shadow: 0 0 8px var(--neon-orange);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div>
+    <span class="mic-emoji">🎤</span>
+    <div class="game-title">SING OFF</div>
+    <span class="mic-emoji" style="animation-delay:0.5s">🎤</span>
+  </div>
+  <div class="setup-form">
+    <div class="name-input-group">
+      <div class="name-label">🌸 Player 1 Name</div>
+      <input class="name-input" id="input-p1" type="text" placeholder="Enter name..." maxlength="14" autocomplete="off" />
+    </div>
+    <div class="name-input-group">
+      <div class="name-label" style="color:var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan);">⚡ Player 2 Name</div>
+      <input class="name-input" id="input-p2" type="text" placeholder="Enter name..." maxlength="14" autocomplete="off" />
+    </div>
+    <button class="start-btn" onclick="startGame()">LET'S SING! 🎶</button>
+  </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game-screen">
+
+  <!-- Player 2 (top, rotated) -->
+  <div class="player-zone" id="zone-p2">
+    <div class="player-score" id="score-p2" style="color:var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan);">0</div>
+    <div class="player-name-display" id="name-p2" style="color:var(--neon-cyan);">PLAYER 2</div>
+    <div class="challenge-badge" id="badge-p2"></div>
+    <div class="lockout-timer" id="lockout-p2">⏳ <span></span>s</div>
+    <div class="status-label" id="status-p2"></div>
+    <button class="buzz-btn" id="btn-p2" onclick="pressBuzz(2)">
+      <span class="btn-icon">🎤</span>
+      <span id="buzzlabel-p2">TAP TO SING!</span>
+    </button>
+    <button class="confirm-win-btn" id="confirm-p2" onclick="confirmWin(2)">✅ I SANG IT!</button>
+  </div>
+
+  <div class="separator"></div>
+
+  <!-- Middle control zone -->
+  <div id="middle-zone">
+    <div id="word-display">
+      <div class="word-text" id="word-p2" style="transform:rotate(180deg)"></div>
+      <div class="word-divider" style="transform:rotate(180deg)"></div>
+      <div class="word-text" id="word-p1"></div>
+    </div>
+    <div id="timer-bar-container"><div id="timer-bar"></div></div>
+    <div id="timer-text"></div>
+    <div class="middle-btns">
+      <button class="action-btn" id="btn-start-round" onclick="startCountdown()">🟢 START ROUND</button>
+      <button class="action-btn" id="btn-give-up" onclick="giveUp()">↩️ NEW WORD</button>
+    </div>
+  </div>
+
+  <div class="separator"></div>
+
+  <!-- Player 1 (bottom) -->
+  <div class="player-zone" id="zone-p1">
+    <button class="buzz-btn" id="btn-p1" onclick="pressBuzz(1)">
+      <span class="btn-icon">🎤</span>
+      <span id="buzzlabel-p1">TAP TO SING!</span>
+    </button>
+    <div class="confirm-win-btn-wrap">
+      <button class="confirm-win-btn" id="confirm-p1" onclick="confirmWin(1)">✅ I SANG IT!</button>
+    </div>
+    <div class="status-label" id="status-p1"></div>
+    <div class="lockout-timer" id="lockout-p1">⏳ <span></span>s</div>
+    <div class="challenge-badge" id="badge-p1"></div>
+    <div class="player-name-display" id="name-p1" style="color:var(--neon-pink);">PLAYER 1</div>
+    <div class="player-score" id="score-p1" style="color:var(--neon-pink); text-shadow: 0 0 15px var(--neon-pink);">0</div>
+  </div>
+</div>
+
+<!-- Countdown overlay -->
+<div id="countdown-overlay">
+  <div class="countdown-label">GET READY...</div>
+  <div id="countdown-number">3</div>
+</div>
+
+<!-- Feedback overlay -->
+<div id="feedback-overlay">
+  <div id="feedback-msg" class="feedback-msg"></div>
+</div>
+
+<!-- Fail flash -->
+<div id="fail-flash"></div>
+
+<!-- Win screen -->
+<div id="win-screen">
+  <div class="win-title">🏆 WINNER! 🏆</div>
+  <div class="win-name" id="win-name"></div>
+  <div class="win-subtitle">THE ULTIMATE SING OFF CHAMPION</div>
+  <button class="play-again-btn" onclick="resetGame()">🎤 PLAY AGAIN</button>
+</div>
+
+<script>
+// ===== WORD LIST (150 unique words) =====
+const WORDS = [
+  'RAIN','FIRE','BABY','HOME','LOVE','NIGHT','DREAM','HEART','STAR','SUN',
+  'MOON','DANCE','ROAD','BLUE','GOLD','WILD','FREE','GIRL','BOY','KING',
+  'QUEEN','DARK','LIGHT','BACK','TIME','HAND','EYE','MIND','SOUL','RIVER',
+  'ANGEL','WINGS','ROSE','STORM','ROCK','WAVE','SAND','SHINE','LOST','FLY',
+  'SMILE','TEARS','KISS','FADE','BRAVE','LOUD','SWEET','BLACK','WHITE','RUN',
+  'STAY','FALL','RISE','WALK','MOVE','LIVE','SING','PLAY','CALL','SUMMER',
+  'WINTER','MEMORY','MAGIC','THUNDER','BROKEN','STRANGER','SHADOW','WONDER',
+  'MIDNIGHT','DIAMOND','HIGHER','JOURNEY','PARTY','DRIVE','FEELS','CRAZY',
+  'PRETTY','TONIGHT','WAITING','RUNNING','CLOSER','BETTER','HEAVEN','CHASING',
+  'BURNING','BELIEVER','PERFECT','UPTOWN','ROLLING','SOMEBODY','NOTHING',
+  'EVERYTHING','WANTED','ALIVE','BONES','OCEAN','RADIO','SOLDIER','TIGER',
+  'POWER','MERCY','GLORY','FAITH','WATER','EARTH','SPACE','MILES','PAPER',
+  'SILVER','COPPER','NEON','ELECTRIC','BEAUTIFUL','WONDERFUL','AMAZING',
+  'LIGHTNING','PHOENIX','GHOST','DEVIL','REBEL','WARRIOR','HERO','LEGEND',
+  'CHEAP','MONEY','DOLLAR','COIN','RING','CROWN','THRONE','PALACE','WINDOW',
+  'CEILING','FLOOR','DOOR','BRIDGE','TUNNEL','MOUNTAIN','VALLEY','DESERT',
+  'JUNGLE','ISLAND','CITY','STREET','HIGHWAY','RUNWAY','ROCKET','ENGINE',
+  'SPEED','HEAVY','COLD','WARM','HOT','QUIET','ANGRY','HAPPY','LONELY',
+  'PROUD','CHOSEN','GOLDEN','FIGHTER','MIRROR','CANDLE','BOTTLE','DANGER'
+];
+
+// Shuffle deck — words never repeat until all 150 have been used once
+let wordDeck = [];
+function refillDeck() {
+  wordDeck = WORDS.slice();
+  for (var i = wordDeck.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = wordDeck[i]; wordDeck[i] = wordDeck[j]; wordDeck[j] = tmp;
+  }
+}
+
+// ===== GAME STATE =====
+let state = {
+  p1Name: '', p2Name: '',
+  p1Score: 0, p2Score: 0,
+  currentWord: '',
+  phase: 'idle', // idle | countdown | open | singing1 | singing2 | locked1 | locked2
+  activePlayer: 0, // who is currently singing
+  lockedOut: 0, // who is locked out
+  lockoutTimer: null,
+  singTimer: null,
+  singTimeLeft: 0,
+};
+
+function getChallenge(score) {
+  if (score >= 100) return { text: '📢 AS LOUD AS YOU CAN!', color: '#ff2d78' };
+  if (score >= 70) return { text: '👩 GIRL SINGERS ONLY', color: '#c800ff' };
+  if (score >= 50) return { text: '🎸 BANDS ONLY', color: '#ff6a00' };
+  if (score >= 30) return { text: '🎤 SOLO ARTISTS ONLY', color: '#ffe600' };
+  return null;
+}
+
+function startGame() {
+  const n1 = document.getElementById('input-p1').value.trim();
+  const n2 = document.getElementById('input-p2').value.trim();
+  if (!n1 || !n2) { alert('Both players need a name!'); return; }
+  state.p1Name = n1.toUpperCase();
+  state.p2Name = n2.toUpperCase();
+  document.getElementById('name-p1').textContent = state.p1Name;
+  document.getElementById('name-p2').textContent = state.p2Name;
+  document.getElementById('buzzlabel-p1').textContent = state.p1Name;
+  document.getElementById('buzzlabel-p2').textContent = state.p2Name;
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'flex';
+  resetRound(true);
+}
+
+function resetRound(first = false) {
+  clearAllTimers();
+  state.phase = 'idle';
+  state.activePlayer = 0;
+  state.lockedOut = 0;
+
+  // Reset buttons
+  ['p1','p2'].forEach(p => {
+    document.getElementById('btn-'+p).classList.remove('locked','active-turn');
+    document.getElementById('confirm-'+p).style.display = 'none';
+    document.getElementById('status-'+p).textContent = '';
+    document.getElementById('lockout-'+p).style.display = 'none';
+  });
+
+  document.getElementById('word-display').style.display = 'none';
+  document.getElementById('timer-bar-container').style.display = 'none';
+  document.getElementById('timer-text').style.display = 'none';
+  document.getElementById('btn-give-up').style.display = 'none';
+  document.getElementById('btn-start-round').style.display = 'block';
+  document.getElementById('zone-p1').classList.remove('singing','locked-out');
+  document.getElementById('zone-p2').classList.remove('singing','locked-out');
+}
+
+function pickWord() {
+  if (wordDeck.length === 0) refillDeck();
+  return wordDeck.pop();
+}
+
+function startCountdown() {
+  document.getElementById('btn-start-round').style.display = 'none';
+  state.phase = 'countdown';
+  let count = 3;
+  const overlay = document.getElementById('countdown-overlay');
+  const num = document.getElementById('countdown-number');
+  overlay.style.display = 'flex';
+  num.textContent = count;
+  num.style.animation = 'none'; num.offsetHeight; num.style.animation = 'countPop 0.4s ease-out';
+
+  const interval = setInterval(() => {
+    count--;
+    if (count > 0) {
+      num.textContent = count;
+      num.style.animation = 'none'; num.offsetHeight; num.style.animation = 'countPop 0.4s ease-out';
+    } else {
+      clearInterval(interval);
+      overlay.style.display = 'none';
+      showWord();
+    }
+  }, 900);
+}
+
+function showWord() {
+  state.currentWord = pickWord();
+  document.getElementById('word-p1').textContent = state.currentWord;
+  document.getElementById('word-p2').textContent = state.currentWord;
+  document.getElementById('word-display').style.display = 'flex';
+  document.getElementById('btn-give-up').style.display = 'inline-block';
+  state.phase = 'open';
+  document.getElementById('status-p1').textContent = '🎤 TAP TO ATTEMPT';
+  document.getElementById('status-p2').textContent = '🎤 TAP TO ATTEMPT';
+}
+
+function pressBuzz(player) {
+  if (state.phase !== 'open') return;
+  if (state.lockedOut === player) return;
+
+  const other = player === 1 ? 2 : 1;
+  state.activePlayer = player;
+  state.lockedOut = other;
+  state.phase = 'singing' + player;
+
+  // Update UI
+  const activePfx = 'p' + player;
+  const otherPfx = 'p' + other;
+
+  document.getElementById('btn-' + activePfx).classList.add('active-turn');
+  document.getElementById('btn-' + otherPfx).classList.add('locked');
+  document.getElementById('confirm-' + activePfx).style.display = 'inline-block';
+  document.getElementById('confirm-' + otherPfx).style.display = 'none';
+  document.getElementById('status-' + activePfx).textContent = '🎵 SING IT!';
+  document.getElementById('zone-p' + player).classList.add('singing');
+  document.getElementById('zone-p' + other).classList.add('locked-out');
+
+  startSingTimer(player, other, 10, false);
+}
+
+function startSingTimer(singer, other, seconds, isBonusTime) {
+  clearSingTimer();
+  state.singTimeLeft = seconds;
+  updateTimerBar(seconds, seconds);
+  document.getElementById('timer-bar-container').style.display = 'block';
+  document.getElementById('timer-text').style.display = 'block';
+  document.getElementById('timer-text').textContent = seconds + 's';
+
+  // Show lockout for other player
+  const lockEl = document.getElementById('lockout-p' + other);
+  lockEl.style.display = 'block';
+  lockEl.querySelector('span').textContent = seconds;
+
+  state.singTimer = setInterval(() => {
+    state.singTimeLeft--;
+    updateTimerBar(state.singTimeLeft, seconds);
+    document.getElementById('timer-text').textContent = state.singTimeLeft + 's';
+    lockEl.querySelector('span').textContent = state.singTimeLeft;
+
+    if (state.singTimeLeft <= 0) {
+      clearSingTimer();
+      onSingTimerExpired(singer, other, isBonusTime);
+    }
+  }, 1000);
+}
+
+function updateTimerBar(left, total) {
+  const pct = (left / total) * 100;
+  const bar = document.getElementById('timer-bar');
+  bar.style.width = pct + '%';
+  if (pct > 50) bar.style.background = 'var(--neon-green)';
+  else if (pct > 25) bar.style.background = 'var(--neon-yellow)';
+  else bar.style.background = 'var(--neon-pink)';
+}
+
+function onSingTimerExpired(singer, other, wasBonusTime) {
+  // Singer ran out of time - give X and other player gets bonus time
+  showFeedback('❌', '#ff2d78');
+  flashFail();
+
+  document.getElementById('confirm-p' + singer).style.display = 'none';
+  document.getElementById('btn-p' + singer).classList.remove('active-turn');
+  document.getElementById('btn-p' + singer).classList.add('locked');
+  document.getElementById('zone-p' + singer).classList.remove('singing');
+  document.getElementById('zone-p' + singer).classList.add('locked-out');
+  document.getElementById('lockout-p' + singer).style.display = 'none';
+
+  if (!wasBonusTime) {
+    // Other player gets 10 seconds bonus
+    state.activePlayer = other;
+    state.lockedOut = singer;
+    document.getElementById('btn-p' + other).classList.remove('locked');
+    document.getElementById('btn-p' + other).classList.add('active-turn');
+    document.getElementById('confirm-p' + other).style.display = 'inline-block';
+    document.getElementById('zone-p' + other).classList.remove('locked-out');
+    document.getElementById('zone-p' + other).classList.add('singing');
+    document.getElementById('status-p' + other).textContent = '🎵 YOUR TURN!';
+    document.getElementById('status-p' + singer).textContent = '❌ LOCKED';
+    startSingTimer(other, singer, 10, true);
+  } else {
+    // Both failed — fully reset both players back to open state
+    ['p1','p2'].forEach(function(p) {
+      document.getElementById('btn-' + p).classList.remove('locked', 'active-turn');
+      document.getElementById('confirm-' + p).style.display = 'none';
+      document.getElementById('zone-' + p).classList.remove('singing', 'locked-out');
+      document.getElementById('lockout-' + p).style.display = 'none';
+      document.getElementById('status-' + p).textContent = '🎤 TAP TO ATTEMPT';
+    });
+    document.getElementById('timer-bar-container').style.display = 'none';
+    document.getElementById('timer-text').style.display = 'none';
+    state.phase = 'open';
+    state.activePlayer = 0;
+    state.lockedOut = 0;
+  }
+}
+
+function confirmWin(player) {
+  if (state.activePlayer !== player) return;
+  clearSingTimer();
+
+  const prevScore = player === 1 ? state.p1Score : state.p2Score;
+  if (player === 1) state.p1Score += 10;
+  else state.p2Score += 10;
+  const newScore = player === 1 ? state.p1Score : state.p2Score;
+
+  document.getElementById('score-p' + player).textContent = newScore;
+  showFeedback('🎤 +10', 'var(--neon-green)');
+
+  // Check challenges
+  updateChallengeBadges(prevScore, newScore, player);
+
+  // Check win
+  if (newScore >= 100) {
+    setTimeout(() => showWin(player), 800);
+    return;
+  }
+
+  setTimeout(() => resetRound(), 700);
+}
+
+function updateChallengeBadges(prevScore, newScore, player) {
+  const pfx = 'p' + player;
+  const badge = document.getElementById('badge-' + pfx);
+
+  // Thresholds where a badge first appears — scoring past these clears the badge temporarily
+  const thresholds = [30, 50, 70, 100];
+  const justCrossed = thresholds.find(t => prevScore === t && newScore > t);
+  if (justCrossed) {
+    badge.style.display = 'none';
+    return;
+  }
+
+  const challenge = getChallenge(newScore);
+  if (challenge) {
+    badge.textContent = challenge.text;
+    badge.style.background = challenge.color + '33';
+    badge.style.color = challenge.color;
+    badge.style.border = '1.5px solid ' + challenge.color;
+    badge.style.boxShadow = '0 0 10px ' + challenge.color;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function giveUp() {
+  clearAllTimers();
+  state.phase = 'idle';
+  state.activePlayer = 0;
+  state.lockedOut = 0;
+  ['p1','p2'].forEach(p => {
+    document.getElementById('btn-'+p).classList.remove('locked','active-turn');
+    document.getElementById('confirm-'+p).style.display = 'none';
+    document.getElementById('status-'+p).textContent = '';
+    document.getElementById('lockout-'+p).style.display = 'none';
+    document.getElementById('zone-'+p).classList.remove('singing','locked-out');
+  });
+  document.getElementById('word-display').style.display = 'none';
+  document.getElementById('timer-bar-container').style.display = 'none';
+  document.getElementById('timer-text').style.display = 'none';
+  document.getElementById('btn-give-up').style.display = 'none';
+  document.getElementById('btn-start-round').style.display = 'block';
+}
+
+function showFeedback(text, color) {
+  const overlay = document.getElementById('feedback-overlay');
+  const msg = document.getElementById('feedback-msg');
+  msg.textContent = text;
+  msg.style.color = color;
+  msg.style.textShadow = '0 0 30px ' + color + ', 0 0 60px ' + color;
+  overlay.style.display = 'flex';
+  msg.style.animation = 'none';
+  msg.offsetHeight;
+  msg.style.animation = 'feedbackAnim 0.7s ease-out forwards';
+  setTimeout(() => { overlay.style.display = 'none'; }, 700);
+}
+
+function flashFail() {
+  const el = document.getElementById('fail-flash');
+  el.style.display = 'block';
+  el.style.animation = 'none';
+  el.offsetHeight;
+  el.style.animation = 'failFlash 0.5s ease-out forwards';
+  setTimeout(() => { el.style.display = 'none'; }, 500);
+}
+
+function showWin(player) {
+  const name = player === 1 ? state.p1Name : state.p2Name;
+  document.getElementById('win-name').textContent = name;
+  document.getElementById('win-screen').style.display = 'flex';
+  launchConfetti();
+}
+
+function launchConfetti() {
+  const colors = ['#39ff14','#ff2d78','#ffe600','#00f5ff','#ff6a00','#c800ff'];
+  for (let i = 0; i < 80; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.top = '-20px';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.width = (6 + Math.random() * 10) + 'px';
+    piece.style.height = (6 + Math.random() * 10) + 'px';
+    piece.style.animationDuration = (1.5 + Math.random() * 2.5) + 's';
+    piece.style.animationDelay = Math.random() * 1.5 + 's';
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 5000);
+  }
+}
+
+function resetGame() {
+  document.getElementById('win-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'none';
+  state.p1Score = 0; state.p2Score = 0;
+  document.getElementById('score-p1').textContent = '0';
+  document.getElementById('score-p2').textContent = '0';
+  ['p1','p2'].forEach(p => {
+    document.getElementById('badge-'+p).style.display = 'none';
+  });
+  document.getElementById('input-p1').value = '';
+  document.getElementById('input-p2').value = '';
+  document.getElementById('setup-screen').style.display = 'flex';
+}
+
+function clearSingTimer() {
+  if (state.singTimer) { clearInterval(state.singTimer); state.singTimer = null; }
+}
+
+function clearAllTimers() {
+  clearSingTimer();
+  if (state.lockoutTimer) { clearTimeout(state.lockoutTimer); state.lockoutTimer = null; }
+}
+
+// Allow Enter to start
+document.getElementById('input-p2').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startGame();
+});
+</script>
+</body>
+</html>
